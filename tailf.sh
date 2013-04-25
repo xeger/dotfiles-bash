@@ -1,0 +1,1 @@
+alias tailf="tail -f"
