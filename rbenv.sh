@@ -1,3 +1,6 @@
+# Never bother with Tcl/Tk support when building Rubies
+export RUBY_CONFIGURE_OPTS="--without-tk --without-tcl --with-out-ext=tcl --with-out-ext=tk"
+
 function use() {
 
   if [ -z "$1" ]; then
