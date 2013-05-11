@@ -25,6 +25,7 @@ alias sapply="git stash apply"
 alias fetch="git fetch"
 alias merge="git merge --no-ff --no-commit"
 
+# Push the working branch to master. 
 function push {
   if [ -z $1 ]; then
     local h="$(git symbolic-ref HEAD 2>/dev/null)"
@@ -40,6 +41,13 @@ function push {
   #fi
 }
 
+# With no arguments, pull from origin.
+#
+# With two arguments where the first is "into," open a browser to create a GitHub
+# pull request into the branch named in the second argument.
+#
+# Example:
+#   pull into master
 function pull {
   if [ "$1" == "into" ]; then
     local repo=`basename $PWD`
@@ -48,11 +56,18 @@ function pull {
     local dest=$2
     local url="https://github.com/rightscale/$repo/pull/new/rightscale:${dest}...rightscale:$source"
     open $url
-  else
+  elif [ -n "$1" ]; then
     git pull --ff-only
+  else
+    echo "Don't know how to $1"
+    return 1
   fi
 }
 
+# Track a remote branch of the same name, at the given remote.
+#
+# Example:
+#  track master
 function track {
   local h="$(git symbolic-ref HEAD 2>/dev/null)"
   local b=${h##refs/heads/}
@@ -61,7 +76,8 @@ function track {
     local remote=origin
   else
     local remote=$1
-  fi
+  fi 
 
-  git branch --set-upstream $b $remote/$b
+  git branch $b --set-upstream-to=$remote/$b
 }
+
