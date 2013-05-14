@@ -56,7 +56,7 @@ function pull {
     local dest=$2
     local url="https://github.com/rightscale/$repo/pull/new/rightscale:${dest}...rightscale:$source"
     open $url
-  elif [ -n "$1" ]; then
+  elif [ "$1" == "" ]; then
     git pull --ff-only
   else
     echo "Don't know how to $1"
