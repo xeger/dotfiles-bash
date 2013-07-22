@@ -19,19 +19,20 @@ as per the standard.
 
 Example .bash_profile
 ---------------------
-  source ~/.bashrc
 
-  for script in $HOME/.bash_profile.d/*.sh ; do
-      if [ -r $script ] ; then
-          . $script
-      fi
-  done
+    source ~/.bashrc
 
-  for script in $HOME/.bash_profile.shared/*.sh; do
-      if [ -r $script ] ; then
-          . $script
-      fi
-  done
+    for script in $HOME/.bash_profile.d/*.sh ; do
+        if [ -r $script ] ; then
+            . $script
+        fi
+    done
+
+    for script in $HOME/.bash_profile.shared/*.sh; do
+        if [ -r $script ] ; then
+            . $script
+        fi
+    done
 
 
   
