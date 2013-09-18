@@ -64,6 +64,16 @@ function pull {
   fi
 }
 
+# Open a browser to compare the head of the current branch with some other branch in GitHub.
+function compare {
+   local repo=`basename $PWD`
+   local h="$(git symbolic-ref HEAD 2>/dev/null)"
+   local source=${h##refs/heads/}
+   local dest=$1
+   local url="https://github.com/rightscale/$repo/compare/$dest...$source"
+   open $url
+}
+
 # Track a remote branch of the same name, at the given remote.
 #
 # Example:
