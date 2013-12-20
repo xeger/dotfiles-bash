@@ -77,7 +77,7 @@ function compare {
 # Track a remote branch of the same name, at the given remote.
 #
 # Example:
-#  track master
+#  track origin 
 function track {
   local h="$(git symbolic-ref HEAD 2>/dev/null)"
   local b=${h##refs/heads/}
