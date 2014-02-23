@@ -30,12 +30,14 @@ function editify() {
     then
       # bundler will ignore -- and the CWD gets wacked as a result of editify.
       echo "Provide a valid gem name."
+      gem_name=
       return 1
     fi
     `bundle show $gem_name 1>/dev/null 2>&1`
     if [ $? != 0 ]
     then
       echo "Gem $gem_name is unknown to Gemfile."
+      gem_name=
       return 1
     fi
 
@@ -46,6 +48,8 @@ function editify() {
       echo "Found bundled $gem_name at $bundled_gem_location"
     else
       echo "Cannot determine bundled location of $gem_name; please verify that Bundler is happy"
+      gem_name=
+      bundled_gem_location=
       return 3
     fi
 
@@ -57,6 +61,8 @@ function editify() {
       if [ $? == 0 ]
       then
         echo "Reset editified gem $gem_name to gitted source."
+        gem_name=
+        bundled_gem_location=
         return 0
       fi
     else
@@ -69,6 +75,9 @@ function editify() {
         elif [ -d ../$gem_name ]
         then
           user_location=$(abs_path ../$gem_name)
+        else
+          # clear in case previously set
+          user_location=
         fi
       else
         user_location=$(abs_path $2)
@@ -79,6 +88,9 @@ function editify() {
         echo "Found local clone of $gem_name at $user_location"
       else
         echo "Cannot locate a local clone of $gem_name; try specifying it on the command line."
+        gem_name=
+        bundled_gem_location=
+        user_location=
         return 2
       fi
 
@@ -94,12 +106,18 @@ function editify() {
         echo "directories and it will do this for all gitted gems regardless of which gems"
         echo "you specify for bundle update. It is important to either save your changes"
         echo "to the gitted gem directory before performingbundle update or else to use"
-        echo "editifiy --push/--pop before/after the bundle update."
+        echo "editify --push/--pop before/after the bundle update."
+        gem_name=
+        bundled_gem_location=
+        user_location=
         return 0
       fi
     fi
 
     echo "Not so happy. Where did we go wrong?"
+    gem_name=
+    bundled_gem_location=
+    user_location=
     return 4
   fi
 }
