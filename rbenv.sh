@@ -1,6 +1,9 @@
 # Never bother with Tcl/Tk support when building Rubies
 export RUBY_CONFIGURE_OPTS="--without-tk --without-tcl --with-out-ext=tcl --with-out-ext=tk"
 
+# Never print deprecation warnings; they're useless to us.
+export RUBYOPT=-W0
+
 function use() {
 
   if [ -z "$1" ]; then

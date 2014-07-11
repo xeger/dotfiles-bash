@@ -12,8 +12,6 @@ alias gss="git status"
 alias gpl="git pull --ff-only"
 alias gf="git fetch"
 alias gsmu="git submodule update --init --recursive"
-alias gpom="git push origin master"
-alias gdf="git difftool -y -g"
 
 alias co="echo Use 'gco', you ninny!"
 
