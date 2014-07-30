@@ -1,11 +1,42 @@
 # Never bother with Tcl/Tk support when building Rubies
 export RUBY_CONFIGURE_OPTS="--without-tk --without-tcl --with-out-ext=tcl --with-out-ext=tk"
 
-# Never print deprecation warnings; they're useless to us.
+# Tell Ruby never to print deprecation warnings; they're useless to us.
 export RUBYOPT=-W0
 
-function use() {
+# With OS X, make sure that C compilers find XCode headers and lib dirs.
+#
+# Prerequisites: XCode 5.x is installed and you have run the "xcode-select --install" command from
+# Terminal.
+#
+# This is necessary with XCode 5.0 and above because headers and libs are no longer installed under
+# /usr.
+which -s xcrun
+if [ $? == 0 ]; then
+  export CPPFLAGS="$CPPFLAGS -I$(xcrun --show-sdk-path)/usr/include"
+  export CFLAGS="$CFLAGS -I$(xcrun --show-sdk-path)/usr/include -L$(xcrun --show-sdk-path)/usr/lib"
+fi
 
+# With Homebrew
+#
+# Prerequisites: the following homebrew packages have been installed and, if necessary, force-linked
+# using "brew link -f":
+#     apple-gcc42
+#     openssl
+#     readline
+#     zlib
+#
+# This is necessary on Mac OS X Lion (10.8) and above because some Unix libraries no longer ship with
+# the OS.
+which -s brew
+if [ $? == 0 ]; then
+  export CC="$(brew --prefix)/bin/gcc-4.2"
+  export RUBY_CONFIGURE_OPTS="$RUBY_CONFIGURE_OPTS --with-readline-dir=$(brew --prefix readline) --with-openssl-dir=$(brew --prefix openssl)"
+  export CPPFLAGS="-I$(brew --prefix)/include -L$(brew --prefix)/lib"
+  export CFLAGS=$CPPFLAGS
+fi
+
+function use() {
   if [ -z "$1" ]; then
     rbenv versions
   elif [ "$1" == "local" ]; then
