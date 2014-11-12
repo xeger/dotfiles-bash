@@ -3,7 +3,7 @@ function nginx() {
     sudo launchctl start homebrew.mxcl.nginx
   elif [ "$1" == "stop" ]; then
     sudo launchctl stop homebrew.mxcl.nginx
-  elif [i "$1" == "restart" ]; then
+  elif [ "$1" == "restart" ]; then
     sudo launchctl stop homebrew.mxcl.nginx
     sudo launchctl start homebrew.mxcl.nginx
   else
