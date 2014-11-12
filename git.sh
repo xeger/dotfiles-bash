@@ -1,3 +1,21 @@
+# Install Git shell integration scripts
+if [ -d /usr/local/git ]
+then
+  gitcontrib=/usr/local/git/contrib
+else
+  echo "Can't determine location of git contrib dir; completion and prompt extensions not loaded"
+fi 
+
+if [ -n $gitcontrib ]
+then
+  . $gitcontrib/completion/git-completion.bash
+  . $gitcontrib/completion/git-prompt.sh
+  __git_complete gco _git_checkout
+  __git_complete merge _git_merge
+  __git_complete track _git_branch
+fi
+
+# Define some useful command shortcuts. 
 alias gco="git checkout"
 alias ga="git add"
 alias gl="git log --topo-order --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
@@ -48,11 +66,12 @@ function push {
 #   pull into master
 function pull {
   if [ "$1" == "into" ]; then
+    local upstream=`git remote -v | grep push | sed 's|^.*github.com:\(.*\)\.git.*$|\1|'`
     local repo=`basename $PWD`
     local h="$(git symbolic-ref HEAD 2>/dev/null)"
     local source=${h##refs/heads/}
     local dest=$2
-    local url="https://github.com/rightscale/$repo/pull/new/rightscale:${dest}...rightscale:$source"
+    local url="https://github.com/${upstream}/pull/new/${dest}...$source"
     open $url
   elif [ "$1" == "" ]; then
     git pull --ff-only
@@ -60,16 +79,6 @@ function pull {
     echo "Don't know how to $1"
     return 1
   fi
-}
-
-# Open a browser to compare the head of the current branch with some other branch in GitHub.
-function compare {
-   local repo=`basename $PWD`
-   local h="$(git symbolic-ref HEAD 2>/dev/null)"
-   local source=${h##refs/heads/}
-   local dest=$1
-   local url="https://github.com/rightscale/$repo/compare/$dest...$source"
-   open $url
 }
 
 # Track a remote branch of the same name, at the given remote.

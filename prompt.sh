@@ -1,3 +1,8 @@
+# Set some options for __git_ps1
+export GIT_PS1_SHOWDIRTYSTATE=true
+export GIT_PS1_SHOWUNTRACKEDFILES=true
+export GIT_PS1_SHOWUPSTREAM=auto
+
 if [ `uname -s` == "Darwin" ]
 then
   # Awesome Mac OS Terminal prompt that uses xterm-256 color, Unicode color emoji
