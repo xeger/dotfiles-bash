@@ -1,15 +1,19 @@
-# Install Git shell integration scripts
-if [ -d /usr/local/git ]
+# Search common locations for git contrib scripts 
+if [ -d /usr/local/git/contrib/completion ]
 then
-  gitcontrib=/usr/local/git/contrib
+  gitcontrib=/usr/local/git/contrib/completion
+elif [ -d /etc/bash_completion.d ]
+then
+  gitcontrib=/etc/bash_completion.d
 else
   echo "Can't determine location of git contrib dir; completion and prompt extensions not loaded"
 fi 
 
-if [ -n $gitcontrib ]
+# Install Git shell integration scripts
+if [ -n "$gitcontrib" ]
 then
-  . $gitcontrib/completion/git-completion.bash
-  . $gitcontrib/completion/git-prompt.sh
+  . $gitcontrib/git-completion*
+  . $gitcontrib/git-prompt*
   __git_complete gco _git_checkout
   __git_complete merge _git_merge
   __git_complete track _git_branch
