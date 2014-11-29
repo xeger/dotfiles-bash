@@ -11,7 +11,7 @@ export RUBYOPT=-W0
 #
 # This is necessary with XCode 5.0 and above because headers and libs are no longer installed under
 # /usr.
-which -s xcrun
+which xcrun > /dev/null
 if [ $? == 0 ]; then
   export CPPFLAGS="$CPPFLAGS -I$(xcrun --show-sdk-path)/usr/include"
   export CFLAGS="$CFLAGS -I$(xcrun --show-sdk-path)/usr/include -L$(xcrun --show-sdk-path)/usr/lib"
@@ -28,8 +28,7 @@ fi
 #
 # This is necessary on Mac OS X Lion (10.8) and above because some Unix libraries no longer ship with
 # the OS.
-which -s brew
-apple_gcc42="$(brew --prefix)/bin/gcc-4.2"
+which brew > /dev/null && apple_gcc42="$(brew --prefix)/bin/gcc-4.2"
 if [ -f "$apple_gcc42" ]; then
   export CC=$apple_gcc42
   export RUBY_CONFIGURE_OPTS="$RUBY_CONFIGURE_OPTS --with-readline-dir=$(brew --prefix readline) --with-openssl-dir=$(brew --prefix openssl)"
