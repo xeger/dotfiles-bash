@@ -29,8 +29,9 @@ fi
 # This is necessary on Mac OS X Lion (10.8) and above because some Unix libraries no longer ship with
 # the OS.
 which -s brew
-if [ $? == 0 ]; then
-  export CC="$(brew --prefix)/bin/gcc-4.2"
+apple_gcc42="$(brew --prefix)/bin/gcc-4.2"
+if [ -f "$apple_gcc42" ]; then
+  export CC=$apple_gcc42
   export RUBY_CONFIGURE_OPTS="$RUBY_CONFIGURE_OPTS --with-readline-dir=$(brew --prefix readline) --with-openssl-dir=$(brew --prefix openssl)"
   export CPPFLAGS="-I$(brew --prefix)/include -L$(brew --prefix)/lib"
   export CFLAGS=$CPPFLAGS
