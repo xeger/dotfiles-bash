@@ -7,18 +7,6 @@ alias di="docker images"
 alias dgc="docker gc ; docker gci"
 alias dsh="docker shell"
 
-# Intelligent shortcut for "docker run" that uses an identical image, hostname and container name
-function dr() {
-  docker run -d --hostname="${@: -1}" --name="${@: -1}" $@
-}
-
-# Intelligent shortcut for "docker build" that names the image after the working directory
-function db() {
-  pwd=`pwd`
-  base=`basename $pwd`
-  docker build -t $base .
-}
-
 # Useful docker integration for Mac/Windows systems
 function boot2docker_init() {
 	if [ -f /usr/local/bin/boot2docker ]
@@ -50,7 +38,7 @@ function docker() {
 	  done
 	elif [ "$1" == "gci" ] # garbage-collect unused images
 	then
-	   for img in `$real_docker images | grep '<none>' | cut -b 41-52` 
+	   for img in `$real_docker images | grep '<none>' |  awk '{print $3}'`
 	   do
 	     $real_docker rmi -f $img
 	   done 
@@ -59,7 +47,7 @@ function docker() {
 	  docker exec -t -i $2 /bin/bash
 	elif [ "$1" == "it" ] # return the ID of the most recently created container
 	then
-	  echo `$real_docker ps | head -n 2 | tail -n 1 | cut -b 1-12`
+	  echo `$real_docker ps -a | head -n 2 | tail -n 1 | awk '{print $1}'`
 	else
 	  $real_docker $@
 	fi
