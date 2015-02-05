@@ -32,16 +32,14 @@ function docker() {
 
 	if [ "$1" == "gc" ] # garbage-collect terminated containers
 	then
-	  for cont in `$real_docker ps -q -a --filter=[status=exited]`
-	  do
-	    $real_docker rm -f $cont
-	  done
+	  targets= $($real_docker ps -a -q -f status=exited)
+	  echo "Removing terminated containers: $targets"
+	  [ -n "$targets" ] && $real_docker rm -v $targets
 	elif [ "$1" == "gci" ] # garbage-collect unused images
 	then
-	   for img in `$real_docker images | grep '<none>' |  awk '{print $3}'`
-	   do
-	     $real_docker rmi -f $img
-	   done 
+	  targets=$($real_docker images -q -f dangling=true)
+	  echo "Removing dangling images: $targets"
+	  [ -n "$targets" ] && $real_docker rmi $targets
 	elif [ "$1" == "shell" ] # open a bash session in a running container
 	then
 	  docker exec -t -i $2 /bin/bash
