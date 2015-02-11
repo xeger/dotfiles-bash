@@ -45,7 +45,7 @@ function docker() {
 	  docker exec -t -i $2 /bin/bash
 	elif [ "$1" == "it" ] # return the ID of the most recently created container
 	then
-	  echo `$real_docker ps -a | head -n 2 | tail -n 1 | awk '{print $1}'`
+	  echo `$real_docker ps -a | head -n 2 | tail -n 1 | awk '{print $NF}'`
 	else
 	  $real_docker $@
 	fi
