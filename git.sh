@@ -9,13 +9,13 @@ function __git_ps1() {
 }
 
 # Load real Git completion
-for file in /usr/local/git/contrib/completion/git-completion.bash /usr/share/bash-completion/completions/git
+for file in /usr/local/git/contrib/completion/git-completion.bash /usr/share/bash-completion/completions/git /Library/Developer/CommandLineTools/usr/share/git-core/git-completion.bash
 do
   [ -f $file ] && . $file
 done
 
 # Load real Git prompt
-for file in /usr/local/git/contrib/completion/git-prompt.sh /etc/bash_completion.d/git-prompt
+for file in /usr/local/git/contrib/completion/git-prompt.sh /etc/bash_completion.d/git-prompt /Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh
 do
   [ -f $file ] && . $file
 done
