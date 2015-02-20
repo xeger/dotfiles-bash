@@ -8,17 +8,23 @@ function __git_ps1() {
   return 
 }
 
-# Load real Git completion
-for file in /usr/local/git/contrib/completion/git-completion.bash /usr/share/bash-completion/completions/git /Library/Developer/CommandLineTools/usr/share/git-core/git-completion.bash
-do
-  [ -f $file ] && . $file
-done
+# Enable git prompt integration unless specifically told not to.
+# It helps to disable this stuff when you're working with network filesystems
+# (git performs terribly over a network).
+if [ -z "$GIT_PROMPT_DISABLE" ]
+then
+  # Load real Git completion
+  for file in /usr/local/git/contrib/completion/git-completion.bash /usr/share/bash-completion/completions/git /Library/Developer/CommandLineTools/usr/share/git-core/git-completion.bash
+  do
+    [ -f $file ] && . $file
+  done
 
-# Load real Git prompt
-for file in /usr/local/git/contrib/completion/git-prompt.sh /etc/bash_completion.d/git-prompt /Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh
-do
-  [ -f $file ] && . $file
-done
+  # Load real Git prompt
+  for file in /usr/local/git/contrib/completion/git-prompt.sh /etc/bash_completion.d/git-prompt /Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh
+  do
+    [ -f $file ] && . $file
+  done
+fi
 
 __git_complete gco _git_checkout
 __git_complete merge _git_merge
