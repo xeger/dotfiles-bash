@@ -96,6 +96,26 @@ function pull {
   fi
 }
 
+# View the active branch (or a specific file on it) in GitHub's Web UI.
+#
+# With no arguments, open a browser to the tree of this branch's head.
+#
+# With one argument, open a browser to the file or path mentioned.
+function view {
+  local upstream=`git remote -v | grep push | sed 's|^.*github.com:\(.*\)\.git.*$|\1|'`
+  local repo=`basename $PWD`
+  local h="$(git symbolic-ref HEAD 2>/dev/null)"
+  local source=${h##refs/heads/}
+  local path=""
+
+  if [ -n "$1" ]; then
+    path="/$1"
+  fi
+
+  local url="https://github.com/${upstream}/tree/${source}${path}"
+  open $url
+}
+
 # Track a remote branch of the same name, at the given remote.
 #
 # Example:
