@@ -3,7 +3,7 @@ export RUBYOPT=-W0
 
 if [ -d $HOME/.rbenv/bin ]
 then
-  export PATH=$HOME/.rbenv/bin:$PATH
+  export PATH=$HOME/.rbenv/bin:$HOME/.rbenv/shims:$PATH
 fi
 
 function use() {
