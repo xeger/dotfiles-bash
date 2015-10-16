@@ -4,3 +4,6 @@ then
   export GOPATH=$HOME/Code/go
   export PATH=$PATH:$HOME/Code/go/bin
 fi
+
+# Welcome to the future!
+export GO15VENDOREXPERIMENT=1
