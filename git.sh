@@ -5,7 +5,7 @@ function __git_complete() {
 
 # Dummy Git prompt, so other profile bits can call it when unavailable
 function __git_ps1() {
-  return 
+  return
 }
 
 # Enable git prompt integration unless specifically told not to.
@@ -30,7 +30,7 @@ __git_complete gco _git_checkout
 __git_complete merge _git_merge
 __git_complete track _git_branch
 
-# Define some useful command shortcuts. 
+# Define some useful command shortcuts.
 alias gco="git checkout"
 alias ga="git add"
 alias gl="git log --topo-order --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
@@ -56,7 +56,7 @@ alias sapply="git stash apply"
 alias fetch="git fetch"
 alias merge="git merge --no-ff --no-commit"
 
-# Push the working branch to master. 
+# Push the working branch
 function push {
   if [ -z $1 ]; then
     local h="$(git symbolic-ref HEAD 2>/dev/null)"
@@ -69,6 +69,22 @@ function push {
 
   #if [ "$assent" == "y" ]; then
     git push origin $b
+  #fi
+}
+
+# Force-push the working branch
+function bump {
+  if [ -z $1 ]; then
+    local h="$(git symbolic-ref HEAD 2>/dev/null)"
+    local b=${h##refs/heads/}
+  else
+    local b=$1
+  fi
+
+  #read -p "Force-push $b to origin/$b? [y/N] " assent
+
+  #if [ "$assent" == "y" ]; then
+    git push --force origin $b
   #fi
 }
 
@@ -119,7 +135,7 @@ function view {
 # Track a remote branch of the same name, at the given remote.
 #
 # Example:
-#  track origin 
+#  track origin
 function track {
   local h="$(git symbolic-ref HEAD 2>/dev/null)"
   local b=${h##refs/heads/}
@@ -128,8 +144,7 @@ function track {
     local remote=origin
   else
     local remote=$1
-  fi 
+  fi
 
   git branch $b --set-upstream-to=$remote/$b
 }
-
