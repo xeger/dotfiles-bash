@@ -8,23 +8,33 @@ alias bc="bundle console"
 
 alias review="git diff --color=always --word-diff=color --inter-hunk-context=50"
 
-function g {
-  right_x="$HOME/Code/rightscale/right_$1"
-  normal_x="$HOME/Code/rightscale/$1"
-  xeger_x="$HOME/Code/xeger/$1"
-  go_x="$HOME/Code/go/src/github.com/rightscale/$1"
+function g() {
+  bases="$HOME/Code/rightscale $HOME/Code/xeger $HOME/Code/go/src/github.com/rightscale"
+  regexp=`echo "^$1" | sed -e 's/[A-Za-z]/&[^_]*_/g' | sed -e 's/_$//'`
 
-  if [ -d $right_x ]; then
-    cd $right_x
-  elif [ -d $normal_x ]; then
-    cd $normal_x
-  elif [ -d $xeger_x ]; then
-    cd $xeger_x
-  elif [ -d $go_x ]; then
-    cd $go_x
-  else
-    echo "Error: can't find $right_x, $xeger_x, $other_x or $go_x"
-  fi
+  for base in $bases
+  do
+    candidates=`ls -d $base/*`
+    for candidate in $candidates
+    do
+      bn=`basename $candidate`
+      if [ $bn == $1 ]
+      then
+        cd $candidate
+        return 0
+      elif [[ $bn =~ $regexp ]]
+      then
+        cd $candidate
+        return 0
+      fi
+    done
+  done
+
+  echo "Could not find a directory matching '$1' under any of:"
+  for base in $bases
+  do
+    echo "  $base"
+  done
 }
 
 # see https://github.com/rightscale/right_site/tree/master/spec/spec_helper.rb

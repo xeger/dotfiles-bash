@@ -88,6 +88,22 @@ function bump {
   #fi
 }
 
+# Force-push the working branch to a branch of another name 
+function shove {
+  if [ -z "$1" ]
+  then
+    echo "Must specify a remote branch name, else use bump"
+    return 1
+  fi
+  local h="$(git symbolic-ref HEAD 2>/dev/null)"
+  local b=${h##refs/heads/}
+  
+  #read -p "Force-push $b to origin/$$1? [y/N] " assent
+  #if [ "$assent" == "y" ]; then
+    git push --force origin $b:$1
+  #fi
+}
+
 # With no arguments, pull from origin.
 #
 # With two arguments where the first is "into," open a browser to create a GitHub

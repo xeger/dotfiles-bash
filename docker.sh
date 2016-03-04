@@ -11,6 +11,8 @@ function docker-shell() {
 }
 
 alias dc="docker-compose"
+alias dm="docker-machine"
+
 alias dit="docker-it"
 alias drm="docker rm -f"
 alias drmi="docker rmi"
