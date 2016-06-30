@@ -33,7 +33,7 @@ __git_complete track _git_branch
 # Define some useful command shortcuts.
 alias gco="git checkout"
 alias ga="git add"
-alias gl="git log --topo-order --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
+alias gl="git log --topo-order --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%G:%an>%Creset' --abbrev-commit"
 alias glt="git log --topo-order --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
 alias gsw="git show --color"
 alias gd="git diff"
