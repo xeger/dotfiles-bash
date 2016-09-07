@@ -4,15 +4,28 @@ function docker-find-container() {
   declare -a matches
 
   for c in $running; do
-    if [[ $c == *"$1"* ]]; then
+    if [[ $c == $1 ]]; then
+      # exact full-string match: print container name and exit early
+      echo $c
+      return 0
+    elif [[ $c == *"$1"* ]]; then
+      # record partial match
       matches=("${matches[@]}" "$c")
     fi
   done
-  echo ${matches[@]}
-  if [ ${#matches[@]} -gt 1 ]; then
-    return 1 
-  else
+
+  if [ ${#matches[@]} -eq 1 ]; then
+    # exactly one match: print full container name
+    echo ${matches[@]}
     return 0
+  elif [ ${#matches[@]} -eq 0 ]; then
+    # no matches: print $1 verbatim
+    echo $1
+    return 0
+  else
+    # many matches (ambiguous): print all matching containers and fail
+    echo ${matches[@]}
+    return 1
   fi
 }
 
@@ -27,7 +40,7 @@ function docker-gc() {
 function docker-shell() {
   target=`docker-find-container $1`
   if [ $? == 0 ]; then
-    docker exec -t -i $target /bin/bash --login
+    docker exec -t -i -u root $target /bin/bash --login
   else
     echo "Too many matching container names; please be more specific to choose one of:"
     echo "  $target"
@@ -40,9 +53,8 @@ alias dm="docker-machine"
 alias dit="docker-it"
 alias drm="docker rm -f"
 alias drmi="docker rmi"
-alias dps="docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
+alias dps="docker ps --format 'table {{.ID | printf \"%12.12s\"}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}'"
 alias di="docker images"
 alias dgc="docker-gc"
 alias dsh="docker-shell"
 alias cmdb="docker run -t -i --net=host rightscale/cmdb:latest"
-
