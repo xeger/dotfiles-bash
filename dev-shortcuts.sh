@@ -9,7 +9,7 @@ alias bc="bundle console"
 alias review="git diff --color=always --word-diff=color --inter-hunk-context=50"
 
 function g() {
-  bases="$HOME/Code/rightscale $HOME/Code/xeger $HOME/Code/go/src/github.com/rightscale"
+  bases="$HOME/Code/github.com/rightscale $HOME/Code/github.com/xeger"
   regexp=`echo "^$1" | sed -e 's/[A-Za-z]/&[^_]*_/g' | sed -e 's/_$//'`
 
   for base in $bases
