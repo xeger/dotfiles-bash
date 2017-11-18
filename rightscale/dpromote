@@ -1,13 +1,10 @@
 #! /bin/bash
 
 usage() {
-  echo "Release automation wrapper"
+  echo "RightScale promotion helper"
   echo
-  echo "Usage: release <service_offering> <staging|production>"
-  echo
-  echo "Defaults:"
-  echo "  If you omit an org/repo:tag specification, we will infer one from PWD"
-  echo "  If you provide tag but omit org/repo, we will infer org/repo from PWD"
+  echo "Usage: dpromote <image> <from_tag> <to_tag>"
+  echo "   - omit org name from image (rightscale is assumed)"
   exit 0
 }
 
@@ -37,6 +34,11 @@ org=rightscale
 image=$1
 bfrom=$2
 bto=$3
+
+if [ -z "$image" -o -z "$bfrom" -o -z "$bto" ]; then
+  usage
+  exit 1
+fi
 
 rollback=""
 if [ $bto == staging ]; then

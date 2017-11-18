@@ -5,10 +5,6 @@ usage() {
   echo "Release automation wrapper"
   echo
   echo "Usage: release <service_offering> <staging|production>"
-  echo
-  echo "Defaults:"
-  echo "  If you omit an org/repo:tag specification, we will infer one from PWD"
-  echo "  If you provide tag but omit org/repo, we will infer org/repo from PWD"
   exit 0
 }
 

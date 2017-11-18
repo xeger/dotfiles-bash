@@ -73,8 +73,18 @@ if [ "$token" == "null" ]; then
   exit 2
 fi
 
-metadata=`curl $verbose -H "Authorization: Bearer $token" "https://registry-1.docker.io/v2/${org}/${repo}/manifests/${tag}"`
+metadata=`curl -f $verbose -H "Authorization: Bearer $token" "https://registry-1.docker.io/v2/${org}/${repo}/manifests/${tag}"`
+if [ $? != 0 ]; then
+  echo "fatal: could not fetch https://registry-1.docker.io/v2/${org}/${repo}/manifests/${tag}"
+  exit 2
+fi
+
 gitref=`echo $metadata | jq --raw-output .history[0].v1Compatibility | jq --raw-output '.config.Labels["git.ref"]'`
+if [ $? != 0 ]; then
+  echo "fatal: could not fetch https://registry-1.docker.io/v2/${org}/${repo}/manifests/${tag}"
+  exit 2
+fi
+
 gitref=`echo $gitref | cut -b1-8` # shorten git ref for better readability
 if [ "$gitref" == "null" ]; then
   gunk=`curl $verbose -H "Authorization: Bearer $token" "https://registry-1.docker.io/v2/${org}/${repo}/manifests/${tag}" | jq --raw-output .history[0].v1Compatibility`
