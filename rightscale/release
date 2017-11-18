@@ -1,0 +1,122 @@
+#! /bin/bash
+
+# Print help and exit with a smile.
+usage() {
+  echo "Release automation wrapper"
+  echo
+  echo "Usage: release <service_offering> <staging|production>"
+  echo
+  echo "Defaults:"
+  echo "  If you omit an org/repo:tag specification, we will infer one from PWD"
+  echo "  If you provide tag but omit org/repo, we will infer org/repo from PWD"
+  exit 0
+}
+
+# Ensure CLI tools or fail.
+depcheck() {
+  for req in curl jp; do
+    if ! which -s $req; then
+      echo "fatal: This script requires $req and it was not found in the path"
+      echo
+      echo "For Mac OS X users:"
+      echo "  brew tap jmespath/jmespath"
+      echo "  brew install jp"
+      exit 1
+    fi
+  done
+}
+
+# Initialize RestConnection configuration file and export some RIGHTSCALE_
+# env vars for use by other functions.
+#
+# $1 -> name of environment (production or staging)
+setup() {
+  env=$1
+  conf="$HOME/.rest_connection/${env}.yaml"
+
+  if [ ! -f $conf ]; then
+    echo "fatal: Cannot find $conf"
+    exit 1
+  fi
+
+  cp ~/.rest_connection/${env}.yaml ~/.rest_connection/rest_api_config.yaml
+
+  set -e
+  rt=`cat ~/.rest_connection/rest_api_config.yaml  | grep refresh_token: | cut -d: -f3 | sed -e 's/^[ \t]*//'`
+  acct=`cat ~/.rest_connection/rest_api_config.yaml  | grep account: | cut -d: -f3 | sed -e 's/^[ \t]*//'`
+  shard=`cat ~/.rest_connection/rest_api_config.yaml   | grep api_url: | cut -d: -f4 | cut -d/ -f3`
+
+  set +e
+
+  export RIGHTSCALE_REFRESH_TOKEN=$rt
+  export RIGHTSCALE_ACCOUNT=$acct
+  export RIGHTSCALE_SHARD=$shard
+
+  echo "Configured $env (account $acct, shard $shard) with refresh token ${RIGHTSCALE_REFRESH_TOKEN:0:4}..."
+}
+
+# Perform a tag query to identify namespaces in which a given offering is
+# deployed.
+#
+# Exports RIGHTSCALE_RELEASE_NAMESPACES on success.
+#
+# $1 -> name of service to scan for
+scantags() {
+  service=$1
+
+  grant=`curl -s -f -H "X-Api-Version:1.5" -X POST https://$RIGHTSCALE_SHARD/api/oauth2 -d "grant_type=refresh_token" -d "refresh_token=$RIGHTSCALE_REFRESH_TOKEN"`
+  if [ $? != 0 ]; then
+    echo "fatal: RightScale API login failed; please double-check refresh token"
+    exit 1
+  fi
+
+  access_token=`echo $grant | jp -u access_token`
+
+  response=`curl -sf -H "X-Api-Version:1.5" -H "X-Account: $RIGHTSCALE_ACCOUNT" -H "Authorization: Bearer $access_token" -X POST https://$RIGHTSCALE_SHARD/api/tags/by_tag -d "resource_type=instances" -d "tags[]=service:${service}=true" -d "include_tags_with_prefix=info:namespace"`
+  if [ $? != 0 ]; then
+    echo "fatal: RightScale API tag query failed:"
+    echo $response
+    exit 1
+  fi
+
+  export RIGHTSCALE_RELEASE_NAMESPACES=`echo $response | jp -u 'join(\`"\n"\`, [].tags[0].name)' | cut -d= -f2 | sort | uniq`
+}
+
+while getopts ":" opt; do
+  case ${opt} in
+    \? )
+    usage
+    ;;
+  esac
+done
+shift $((OPTIND -1))
+
+service=$1
+env=$2
+
+if [ -z "$service" ]; then
+  usage
+  exit 1
+fi
+
+if [[ ! "$env" =~ ^(staging|production)$ ]]; then
+  usage
+  exit 1
+fi
+
+setup $env
+scantags $service
+
+raenv=$env
+[ $raenv == staging ] && raenv=stage
+
+
+echo "Instructions for release_automation"
+echo "==================================="
+echo "git checkout $env"
+echo "killall chimpd"
+echo "bundle exec chimpd&"
+
+for ns in $RIGHTSCALE_RELEASE_NAMESPACES; do
+  echo "bundle exec ./tip.rb --no-launch-chimpd --namespace=$ns $raenv hotfix $service"
+done

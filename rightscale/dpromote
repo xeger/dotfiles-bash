@@ -1,0 +1,69 @@
+#! /bin/bash
+
+usage() {
+  echo "Release automation wrapper"
+  echo
+  echo "Usage: release <service_offering> <staging|production>"
+  echo
+  echo "Defaults:"
+  echo "  If you omit an org/repo:tag specification, we will infer one from PWD"
+  echo "  If you provide tag but omit org/repo, we will infer org/repo from PWD"
+  exit 0
+}
+
+depcheck() {
+  for req in docker jp; do
+    if ! which -s $req; then
+      echo "fatal: This script requires $req and it was not found in the path"
+      echo
+      echo "For Mac OS X users:"
+      echo "  brew tap jmespath/jmespath"
+      echo "  brew install jp"
+      exit 1
+    fi
+  done
+}
+
+while getopts ":" opt; do
+  case ${opt} in
+    \? )
+      usage
+    ;;
+  esac
+done
+shift $((OPTIND -1))
+
+org=rightscale
+image=$1
+bfrom=$2
+bto=$3
+
+rollback=""
+if [ $bto == staging ]; then
+  rollback=`date '+rb_staging_%Y%m%d.%H%M%S'`
+elif [ $bto == production ]; then
+  rollback=`date '+rb_%Y%m%d.%H%M%S'`
+fi
+
+set -e
+
+echo "+ docker pull $org/$image:$bfrom"
+docker pull $org/$image:$bfrom > /dev/null
+docker inspect $org/$image:$bfrom | jp -u '[0].Id'
+
+if [ -n "$rollback" ]; then
+  echo "+ docker pull $org/$image:$bto"
+  docker pull $org/$image:$bto > /dev/null
+
+  echo "+ docker tag $org/$image:$bto $org/$image:$rollback"
+  docker tag $org/$image:$bto $org/$image:$rollback
+
+  echo "+ docker push $org/$image:$rollback"
+  docker push $org/$image:$rollback > /dev/null
+fi
+
+echo "+ docker tag $org/$image:$bfrom $org/$image:$bto"
+docker tag $org/$image:$bfrom $org/$image:$bto > /dev/null
+
+echo "+ docker push $org/$image:$bto"
+docker push $org/$image:$bto > /dev/null

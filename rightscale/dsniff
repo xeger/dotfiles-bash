@@ -1,0 +1,107 @@
+#! /bin/bash
+
+usage() {
+  echo "Docker image sniffer"
+  echo
+  echo "Usage: dsniff [-v] [-r] [[org/repo:]tag]"
+  echo
+  echo "Options:"
+  echo "  -v  Verbose curl output to stderr"
+  echo "  -r  Show remote git branches"
+  echo
+  echo "Defaults:"
+  echo "  If you omit an org/repo:tag specification, we will infer one from PWD"
+  echo "  If you provide tag but omit org/repo, we will infer org/repo from PWD"
+  exit 0
+}
+
+depcheck() {
+  for req in jq curl; do
+    if ! which -s $req; then
+      echo "fatal: This script requires $req and it was not found in the path"
+      exit 1
+    fi
+  done
+
+  if [ -z "$RIGHTSCALE_DOCKER_USER" -o -z "$RIGHTSCALE_DOCKER_PASSWORD" ]; then
+    echo "fatal: Must set RIGHTSCALE_DOCKER_USER and RIGHTSCALE_DOCKER_PASSWORD before running this script"
+    exit 2
+  fi
+}
+
+verbose='-s'
+remote='-l'
+remoteDesc='local'
+while getopts ":vr" opt; do
+  case ${opt} in
+    v )
+      verbose='-v'
+    ;;
+    r )
+      remote="-r"
+      remoteDesc='remote'
+    ;;
+    \? )
+      usage
+    ;;
+  esac
+done
+shift $((OPTIND -1))
+
+if [ -z "$1" ]; then # infer everything from pwd
+  dir=`dirname $PWD`
+  org=`basename $dir`
+  repo=`basename $PWD`
+  tag="latest"
+elif [[ "$1" =~ ":" ]]; then # infer nothing, take org/repo:tag from args
+  org=`echo $1 | cut -d/ -f1`
+  repo_tag=`echo $1 | cut -d/ -f2`
+  repo=`echo $repo_tag | cut -d: -f1`
+  tag=`echo $repo_tag | cut -d: -f2`
+else # infer org/repo but take tag from args
+  dir=`dirname $PWD`
+  org=`basename $dir`
+  repo=`basename $PWD`
+  tag=$1
+fi
+
+depcheck
+
+token=`curl $verbose -H 'Accept: application/json' --user "${RIGHTSCALE_DOCKER_USER}:${RIGHTSCALE_DOCKER_PASSWORD}" "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${org}/${repo}:pull" | jq --raw-output .token`
+if [ "$token" == "null" ]; then
+  echo "fatal: could not login to Docker registry"
+  exit 2
+fi
+
+metadata=`curl $verbose -H "Authorization: Bearer $token" "https://registry-1.docker.io/v2/${org}/${repo}/manifests/${tag}"`
+gitref=`echo $metadata | jq --raw-output .history[0].v1Compatibility | jq --raw-output '.config.Labels["git.ref"]'`
+gitref=`echo $gitref | cut -b1-8` # shorten git ref for better readability
+if [ "$gitref" == "null" ]; then
+  gunk=`curl $verbose -H "Authorization: Bearer $token" "https://registry-1.docker.io/v2/${org}/${repo}/manifests/${tag}" | jq --raw-output .history[0].v1Compatibility`
+  echo "fatal: could not find git.ref label of ${org}/${repo}:${tag}"
+  if [ $gunk == 'null' ]; then
+    echo "The image repository or tag does not exist"
+    exit 3
+  else
+    echo "The following labels were found on the image:"
+    echo $gunk | jq '.config.Labels'
+    exit 4
+  fi
+fi
+
+bold=$(tput bold)
+normal=$(tput sgr0)
+
+echo "Image ${org}/${repo}:${tag} built from git.ref ${gitref}"
+echo
+if [ -d ${GIT_DIR:-.git} ]; then
+  if [ $remote == "-r" ]; then
+    git fetch
+  fi
+  echo "The following ${remoteDesc} branches ${bold}POINT AT${normal} ${gitref}:"
+  git branch $remote --points-at $gitref
+  echo
+  echo "The following ${remoteDesc} branches ${bold}CONTAIN${normal} ${gitref}:"
+  git branch $remote --contains $gitref
+  echo
+fi
