@@ -27,6 +27,12 @@ depcheck() {
 #
 # $1 -> name of environment (production or staging)
 setup() {
+  git remote -v | grep -q rightscale/release_automation
+  if [ $? != 0 ]; then
+    echo "fatal: please cd into the rightscale/release_automation dir before running this script"
+    exit 1
+  fi
+
   env=$1
   conf="$HOME/.rest_connection/${env}.yaml"
 
@@ -38,8 +44,8 @@ setup() {
   cp ~/.rest_connection/${env}.yaml ~/.rest_connection/rest_api_config.yaml
 
   set -e
-  rt=`cat ~/.rest_connection/rest_api_config.yaml  | grep refresh_token: | cut -d: -f3 | sed -e 's/^[ \t]*//'`
-  acct=`cat ~/.rest_connection/rest_api_config.yaml  | grep account: | cut -d: -f3 | sed -e 's/^[ \t]*//'`
+  rt=`cat ~/.rest_connection/rest_api_config.yaml  | grep refresh_token: | cut -d: -f3 | sed -e 's/[ \t]*//g'`
+  acct=`cat ~/.rest_connection/rest_api_config.yaml  | grep account: | cut -d: -f3 | sed -e 's/[ \t]*//g'`
   shard=`cat ~/.rest_connection/rest_api_config.yaml   | grep api_url: | cut -d: -f4 | cut -d/ -f3`
 
   set +e
@@ -112,7 +118,14 @@ echo "==================================="
 echo "git checkout $env"
 echo "killall chimpd"
 echo "bundle exec chimpd&"
-
 for ns in $RIGHTSCALE_RELEASE_NAMESPACES; do
   echo "bundle exec ./tip.rb --no-launch-chimpd --namespace=$ns $raenv hotfix $service"
 done
+
+echo ""
+echo "Other options"
+echo "============="
+echo "# See what we can hotfix/replace"
+echo "bx ./tip.rb --no-launch-chimpd --namespace=<ns> <stage|production> <hotfix|replace> tasklist"
+echo "# Dry-run flag is helpful to practice & verify inputs correct"
+echo "bx ./tip.rb --dry-run=true ..."
