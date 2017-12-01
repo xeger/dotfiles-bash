@@ -44,6 +44,9 @@ setup() {
   cp ~/.rest_connection/${env}.yaml ~/.rest_connection/rest_api_config.yaml
 
   set -e
+
+  git pull -q && git checkout $env
+
   rt=`cat ~/.rest_connection/rest_api_config.yaml  | grep refresh_token: | cut -d: -f3 | sed -e 's/[ \t]*//g'`
   acct=`cat ~/.rest_connection/rest_api_config.yaml  | grep account: | cut -d: -f3 | sed -e 's/[ \t]*//g'`
   shard=`cat ~/.rest_connection/rest_api_config.yaml   | grep api_url: | cut -d: -f4 | cut -d/ -f3`
@@ -112,14 +115,22 @@ scantags $service
 raenv=$env
 [ $raenv == staging ] && raenv=stage
 
+taskname=$service
+case $service in
+  rightscale_clouds_gateway)
+      taskname=gateways
+  ;;
+esac
 
+echo ""
 echo "Instructions for release_automation"
 echo "==================================="
-echo "git checkout $env"
 echo "killall chimpd"
 echo "bundle exec chimpd&"
+echo "curl -s --retry 3 --retry-connrefused --retry-delay 1 -X HEAD http://localhost:9055"
+echo "open http://localhost:9055"
 for ns in $RIGHTSCALE_RELEASE_NAMESPACES; do
-  echo "bundle exec ./tip.rb --no-launch-chimpd --namespace=$ns $raenv hotfix $service"
+  echo "bundle exec ./tip.rb --no-launch-chimpd --namespace=$ns $raenv hotfix $taskname"
 done
 
 echo ""
