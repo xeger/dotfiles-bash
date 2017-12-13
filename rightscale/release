@@ -45,7 +45,7 @@ setup() {
 
   set -e
 
-  git pull -q && git checkout $env
+  git checkout $env && git pull -q
 
   rt=`cat ~/.rest_connection/rest_api_config.yaml  | grep refresh_token: | cut -d: -f3 | sed -e 's/[ \t]*//g'`
   acct=`cat ~/.rest_connection/rest_api_config.yaml  | grep account: | cut -d: -f3 | sed -e 's/[ \t]*//g'`
@@ -77,6 +77,7 @@ scantags() {
 
   access_token=`echo $grant | jp -u access_token`
 
+  echo "Searching for namespaces that include tag service:${service}=true"
   response=`curl -sf -H "X-Api-Version:1.5" -H "X-Account: $RIGHTSCALE_ACCOUNT" -H "Authorization: Bearer $access_token" -X POST https://$RIGHTSCALE_SHARD/api/tags/by_tag -d "resource_type=instances" -d "tags[]=service:${service}=true" -d "include_tags_with_prefix=info:namespace"`
   if [ $? != 0 ]; then
     echo "fatal: RightScale API tag query failed:"
@@ -115,10 +116,25 @@ scantags $service
 raenv=$env
 [ $raenv == staging ] && raenv=stage
 
+# The Rake taskname is often the same as the image name, but not always.
+# Handle some well-known cases where they don't match.
+# Add more if you find them!
 taskname=$service
 case $service in
+  cwf_polling_service)
+      taskname=cwf_polling
+  ;;
   rightscale_clouds_gateway)
       taskname=gateways
+  ;;
+  ss_service_catalog)
+      taskname=ss_catalog
+  ;;
+  ss_service_designer)
+      taskname=ss_designer
+  ;;
+  ss_service_manager)
+      taskname=ss_manager
   ;;
 esac
 
