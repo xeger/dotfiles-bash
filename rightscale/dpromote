@@ -3,8 +3,11 @@
 usage() {
   echo "RightScale promotion helper"
   echo
-  echo "Usage: dpromote <image> <from_tag> <to_tag>"
+  echo "Usage: dpromote [-x] <image> <from_tag> <to_tag>"
   echo "   - omit org name from image (rightscale is assumed)"
+  echo ""
+  echo "Options:"
+  echo "  -x  Skip creating rollback tag"
   exit 0
 }
 
@@ -21,8 +24,13 @@ depcheck() {
   done
 }
 
-while getopts ":" opt; do
+skiprollback=""
+
+while getopts ":x" opt; do
   case ${opt} in
+    x )
+      skiprollback=1
+    ;;
     \? )
       usage
     ;;
@@ -41,10 +49,12 @@ if [ -z "$image" -o -z "$bfrom" -o -z "$bto" ]; then
 fi
 
 rollback=""
-if [ $bto == staging ]; then
-  rollback=`date '+rb_staging_%Y%m%d.%H%M%S'`
-elif [ $bto == production ]; then
-  rollback=`date '+rb_%Y%m%d.%H%M%S'`
+if [ -z "$skiprollback" ]; then
+  if [ $bto == staging ]; then
+    rollback=`date '+rb_staging_%Y%m%d.%H%M%S'`
+  elif [ $bto == production ]; then
+    rollback=`date '+rb_%Y%m%d.%H%M%S'`
+  fi
 fi
 
 set -e

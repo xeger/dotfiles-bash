@@ -121,6 +121,9 @@ raenv=$env
 # Add more if you find them!
 taskname=$service
 case $service in
+  azure_arm_proxy)
+      taskname=gateways
+  ;;
   cwf_polling_service)
       taskname=cwf_polling
   ;;
